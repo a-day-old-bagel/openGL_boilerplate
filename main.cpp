@@ -1,5 +1,12 @@
 /*
- * In main.cpp, all openGL boilerplate stuff is done and the main loop is handled.
+ * This project is to provide a convenient starting place for game-like projects using SDL and OpenGL.
+ * It includes getting the graphics environment up and running, as well as an example object (SimpleSquare).
+ * It handles input events for things like exiting (which should take one key press) and movement controls
+ * (which should depend on current key state at a given frame). It even implements rudimentary physics, meaning
+ * that it records time to calculate a semi-accurate time step by which to multiply the velocity of an object to
+ * produce displacement over the time it took to generate the frame.
+ * Hopefully this code is easy to understand and expand.  Some difficulty in readability may occur due to all the
+ * error checking that I have included, but I think it's worth it.
  */
 
 #include <iostream>
@@ -18,12 +25,13 @@
 #define USE_TRANSPARENCY
 #define USE_DEPTHBUFFER
 #define USE_BACKFACE_CULLING
-#define DEBUG_DRIVERS
+//#define DEBUG_DRIVERS
 #define OUTSTREAM std::cout
 
 SDL_Window* pWindow;    // The SDL window
 SDL_GLContext context;  // The openGL context
-SimpleSquare square;
+SimpleSquare square;    // The square object to render
+unsigned previousTime, currentTime, deltaTime; // Used to regulate physics time step
 
 void mainLoop();
 bool initGL ();
@@ -36,6 +44,7 @@ int main() {
 		return 1;
 	}
     square.init();
+    previousTime = SDL_GetTicks();
     mainLoop();
     cleanup();
     return 0;
@@ -54,22 +63,32 @@ void mainLoop() {
                     case SDLK_ESCAPE:
                         loop = false;
                         break;
-                    case SDLK_LEFT:
-                        square.translate(-0.01f, 0.0f, 0.0f);
-                        break;
-                    case SDLK_RIGHT:
-                        square.translate(0.01f, 0.0f, 0.0f);
-                        break;
-                    case SDLK_UP:
-                        square.translate(0.0f, 0.01f, 0.0f);
-                        break;
-                    case SDLK_DOWN:
-                        square.translate(0.0f, -0.01f, 0.0f);
-                        break;
                     default:
                         break;
                 }
             }
+        }
+        /**************************** HANDLE KEY STATE *********************************/
+        // calculate square movement speed with appropriate time step:
+        currentTime = SDL_GetTicks();
+        deltaTime = currentTime - previousTime;
+        previousTime = currentTime;
+        // Get current keyboard state ( this is used for smooth controls rather than key press event controls above )
+        const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+        // apply movement according to which keys are down
+        float squareSpeed = 0.001f * deltaTime;
+
+        if (keyStates[SDL_SCANCODE_UP]) {
+            square.translate(0.0f, squareSpeed, 0.0f);
+        }
+        if (keyStates[SDL_SCANCODE_DOWN]) {
+            square.translate(0.0f, -squareSpeed, 0.0f);
+        }
+        if (keyStates[SDL_SCANCODE_LEFT]) {
+            square.translate(-squareSpeed, 0.0f, 0.0f);
+        }
+        if (keyStates[SDL_SCANCODE_RIGHT]) {
+            square.translate(squareSpeed, 0.0f, 0.0f);
         }
         /**************************** DO THE DRAWING *********************************/
         // clear the buffer
@@ -141,7 +160,7 @@ bool initGL() {
 	}
 
     //Create context
-    context = SDL_GL_CreateContext(pWindow);
+    context = SDL_GL_CreateContext(pWindow);    //context is the place where openGL can draw
     if(context == NULL) {
         OUTSTREAM << "<!>    OpenGL context was not created! SDL Error: " << SDL_GetError() << std::endl;
         return false;
@@ -153,7 +172,7 @@ bool initGL() {
 	checkGlError(__LINE__);
 
     //Initialize GLEW (openGL Extensions Wrangler)
-    glewExperimental = GL_TRUE;
+    glewExperimental = GL_TRUE;     // Sometimes things wont work without this line
     GLenum glewError = glewInit();  // GL enumerator error is thrown here when using openGL versions 3.2+ It's fine.
                                     // see https://www.opengl.org/wiki/OpenGL_Loading_Library
     if(glewError != GLEW_OK) {
@@ -170,7 +189,7 @@ bool initGL() {
     #ifdef USE_VSYNC /************ USE VSYNC ********************************/
 	if (SDL_GL_SetSwapInterval(1) < 0) {
 		OUTSTREAM << "<!>    Warning: Unable to set VSync! SDL Error: " << SDL_GetError() << std::endl;
-		// Do not return
+		// Do not return. This is not an essential functionality.
 	}
 	else {
 		OUTSTREAM << "VSync enabled.\n";
@@ -195,7 +214,7 @@ bool initGL() {
     #ifdef USE_TRANSPARENCY
     // enable transparency
     glEnable (GL_BLEND);
-    // set transparnecy function (this is standard transparency)
+    // set transparency function (this is standard transparency)
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     #endif
 
@@ -245,6 +264,8 @@ void checkSDLError(int line /*= -1*/) {
 }
 
 void cleanup() {
+    // There is probably more cleanup to do.  This
+
     // Delete our OpengL context
     SDL_GL_DeleteContext(context);
 
