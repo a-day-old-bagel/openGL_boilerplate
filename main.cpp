@@ -43,7 +43,7 @@ int main() {
 	if (!initGL()) { // if init fails, exit
 		return 1;
 	}
-    square.init();
+    OUTSTREAM << square.init();
     previousTime = SDL_GetTicks();
     mainLoop();
     cleanup();
