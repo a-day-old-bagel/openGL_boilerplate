@@ -11,7 +11,7 @@
 #define RESOLUTION_X 800
 #define RESOLUTION_Y 600
 #define GLVERSION_MAJOR 3
-#define GLVERSION_MINOR 0
+#define GLVERSION_MINOR 3
 #define SCREENOPTIONS SDL_WINDOW_OPENGL // | SDL_WINDOW_FULLSCREEN_DESKTOP
 #define USE_VSYNC
 #define CLEARCOLOR 0.0f,0.0f,0.0f,1.0f
@@ -31,7 +31,7 @@ void checkGlError(int line = -1);
 void checkSDLError(int line = -1);
 void cleanup();
 
-int main() {
+int main(int argc, char* argv[]) {
 	if (!initGL()) { // if init fails, exit
 		return 1;
 	}

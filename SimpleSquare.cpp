@@ -11,9 +11,8 @@ std::string SimpleSquare::init() {
     std::stringstream log;
 
     // Create and bind a VAO
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
     // set up a simple shader that shades any triangle a single solid color.
     shader = loadShaders("colorShader.vert", "colorShader.frag", log);
@@ -43,6 +42,7 @@ std::string SimpleSquare::init() {
 }
 
 void SimpleSquare::draw() {
+	glBindVertexArray(vao);
     // Tell GPU to use the colorShader program for following draw calls
     glUseProgram (shader);
     // Upload the model matrix to the colorShader program on the GPU

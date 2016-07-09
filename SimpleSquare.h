@@ -11,6 +11,7 @@
 
 struct SimpleSquare {
 
+	GLuint vao;
     GLuint shader;
     GLint shader_modelMat;
     GLint shader_color;
